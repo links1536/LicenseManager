@@ -1,0 +1,19 @@
+# Top-most EditorConfig file
+root = true
+
+# encode
+[*.cs]
+# 日本語はBOM付きUTF-8でないと誤検知を起こすため、BOM付きUTF-8を指定する
+charset = utf-8-bom
+
+# コントロールブロック用の{}は新しい行に配置する
+csharp_new_line_before_open_brace = accessors, anonymous_methods, anonymous_types, events, indexers, lambdas, local_functions, methods, object_collection_array_initializers, properties, control_blocks, types
+
+# インデントはタブ・サイズはスペース4つ分
+indent_style = tab
+indent_size = 4
+
+# 行末尾についたスペースは削除する
+trim_trailing_whitespace = true
+# 最後の行に改行を付ける
+insert_final_newline = true
