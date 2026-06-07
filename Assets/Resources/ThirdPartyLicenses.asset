@@ -1,0 +1,140 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86264bd4259c3da418badb76b1525f4f, type: 3}
+  m_Name: ThirdPartyLicenses
+  m_EditorClassIdentifier: Links.LicenseManager.Runtime::Links.Licenses.ThirdPartyNoticesSettings
+  m_ManualEntries: []
+  m_UnityPackageEntries:
+  - Name: com.unity.2d.sprite 1.0.0 / LICENSE
+    LicenseFile: {fileID: 4900000, guid: 20ef7441e2dc7954c9ba3a12ffbac4d9, type: 3}
+    LicenseText: 
+    SourcePath: Packages/com.unity.2d.sprite
+    IsRepositoryMaterialized: 0
+    IsMetadataOnly: 0
+  - Name: com.unity.2d.tilemap 1.0.0 / LICENSE
+    LicenseFile: {fileID: 4900000, guid: b0560f6f4fbd3a341a3d14343c000889, type: 3}
+    LicenseText: 
+    SourcePath: Packages/com.unity.2d.tilemap
+    IsRepositoryMaterialized: 0
+    IsMetadataOnly: 0
+  - Name: com.unity.2d.tilemap 1.0.0 / Third Party Notices
+    LicenseFile: {fileID: 4900000, guid: dcf0b2fc1fc794a9f919ec1610b03a1f, type: 3}
+    LicenseText: 
+    SourcePath: Packages/com.unity.2d.tilemap
+    IsRepositoryMaterialized: 0
+    IsMetadataOnly: 0
+  - Name: com.unity.editorcoroutines 1.1.0 / LICENSE
+    LicenseFile: {fileID: 4900000, guid: 7fd8423f910d2394b8580e2705aa247a, type: 3}
+    LicenseText: 
+    SourcePath: Packages/com.unity.editorcoroutines
+    IsRepositoryMaterialized: 0
+    IsMetadataOnly: 0
+  - Name: com.unity.ext.nunit 2.0.5 / LICENSE
+    LicenseFile: {fileID: 4900000, guid: f91a00d2dca52b843b2d50ccf750737d, type: 3}
+    LicenseText: 
+    SourcePath: Packages/com.unity.ext.nunit
+    IsRepositoryMaterialized: 0
+    IsMetadataOnly: 0
+  - Name: com.unity.ext.nunit 2.0.5 / Third Party Notices
+    LicenseFile: {fileID: 4900000, guid: bfcb3ba499f7d452b92d9a9cc3378788, type: 3}
+    LicenseText: 
+    SourcePath: Packages/com.unity.ext.nunit
+    IsRepositoryMaterialized: 0
+    IsMetadataOnly: 0
+  - Name: com.unity.ide.rider 3.0.39 / LICENSE
+    LicenseFile: {fileID: 4900000, guid: 5598b14661b5f4c43bed757f34b6d172, type: 3}
+    LicenseText: 
+    SourcePath: Packages/com.unity.ide.rider
+    IsRepositoryMaterialized: 0
+    IsMetadataOnly: 0
+  - Name: com.unity.ide.visualstudio 2.0.27 / LICENSE
+    LicenseFile: {fileID: 4900000, guid: 1fe9e6e1ae93cf64bbdfbd29300752e1, type: 3}
+    LicenseText: 
+    SourcePath: Packages/com.unity.ide.visualstudio
+    IsRepositoryMaterialized: 0
+    IsMetadataOnly: 0
+  - Name: com.unity.ide.visualstudio 2.0.27 / ThirdPartyNotices
+    LicenseFile: {fileID: 4900000, guid: 7809f42f64c877f4b90ac233e5ec2372, type: 3}
+    LicenseText: 
+    SourcePath: Packages/com.unity.ide.visualstudio
+    IsRepositoryMaterialized: 0
+    IsMetadataOnly: 0
+  - Name: com.unity.ide.vscode 1.2.5 / LICENSE
+    LicenseFile: {fileID: 4900000, guid: c9aabac5924106d4790d7b3a924ca34d, type: 3}
+    LicenseText: 
+    SourcePath: Packages/com.unity.ide.vscode
+    IsRepositoryMaterialized: 0
+    IsMetadataOnly: 0
+  - Name: com.unity.multiplayer.center 1.0.1 / LICENSE
+    LicenseFile: {fileID: 4900000, guid: 70554f6c9e4114e1084bb38f9ea400ce, type: 3}
+    LicenseText: 
+    SourcePath: Packages/com.unity.multiplayer.center
+    IsRepositoryMaterialized: 0
+    IsMetadataOnly: 0
+  - Name: com.unity.multiplayer.center 1.0.1 / Third Party Notices
+    LicenseFile: {fileID: 4900000, guid: c8f6fa942856442b8bd72594d3ce7363, type: 3}
+    LicenseText: 
+    SourcePath: Packages/com.unity.multiplayer.center
+    IsRepositoryMaterialized: 0
+    IsMetadataOnly: 0
+  - Name: com.unity.performance.profile-analyzer 1.3.4 / LICENSE
+    LicenseFile: {fileID: 4900000, guid: 1122c571e35634d4aba967c658ce3720, type: 3}
+    LicenseText: 
+    SourcePath: Packages/com.unity.performance.profile-analyzer
+    IsRepositoryMaterialized: 0
+    IsMetadataOnly: 0
+  - Name: com.unity.settings-manager 2.1.1 / LICENSE
+    LicenseFile: {fileID: 4900000, guid: 27264456a8bbc094d9479c5d5f9b0aa5, type: 3}
+    LicenseText: 
+    SourcePath: Packages/com.unity.settings-manager
+    IsRepositoryMaterialized: 0
+    IsMetadataOnly: 0
+  - Name: com.unity.test-framework 1.6.0 / LICENSE
+    LicenseFile: {fileID: 4900000, guid: 3ec7596410385054a9e0bc90377fbe63, type: 3}
+    LicenseText: 
+    SourcePath: Packages/com.unity.test-framework
+    IsRepositoryMaterialized: 0
+    IsMetadataOnly: 0
+  - Name: com.unity.testtools.codecoverage 1.3.0 / LICENSE
+    LicenseFile: {fileID: 4900000, guid: df3aedd5e490bca44b693f5da1e4d2d5, type: 3}
+    LicenseText: 
+    SourcePath: Packages/com.unity.testtools.codecoverage
+    IsRepositoryMaterialized: 0
+    IsMetadataOnly: 0
+  - Name: com.unity.testtools.codecoverage 1.3.0 / Third Party Notices
+    LicenseFile: {fileID: 4900000, guid: 9d40ee9d855163e44bc925c1480d8731, type: 3}
+    LicenseText: 
+    SourcePath: Packages/com.unity.testtools.codecoverage
+    IsRepositoryMaterialized: 0
+    IsMetadataOnly: 0
+  - Name: com.unity.timeline 1.8.12 / LICENSE
+    LicenseFile: {fileID: 4900000, guid: 6ecb9e17e44feb84cb80451fa27b09fe, type: 3}
+    LicenseText: 
+    SourcePath: Packages/com.unity.timeline
+    IsRepositoryMaterialized: 0
+    IsMetadataOnly: 0
+  - Name: com.unity.ugui 2.0.0 / LICENSE
+    LicenseFile: {fileID: 4900000, guid: 4d3d51749e989f747b2674e0b4d9b3d7, type: 3}
+    LicenseText: 
+    SourcePath: Packages/com.unity.ugui
+    IsRepositoryMaterialized: 0
+    IsMetadataOnly: 0
+  m_MissingUnityPackageEntries:
+  - Name: jp.links1536.license-manager 1.0.0
+    PackagePath: Packages/jp.links1536.license-manager
+    Reason: "\u30D1\u30C3\u30B1\u30FC\u30B8\u76F4\u4E0B\u307E\u305F\u306F GitHub
+      \u30EA\u30DD\u30B8\u30C8\u30EA\u76F4\u4E0B\u306B\u5BFE\u5FDC\u3059\u308B\u30E9\u30A4\u30BB\u30F3\u30B9\u30D5\u30A1\u30A4\u30EB\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093"
+    LicenseFile: {fileID: 0}
+    IsRepositoryMaterialized: 1
+    HasMetadataLicense: 0
+  m_NuGetEntries: []
+  m_MissingNuGetEntries: []

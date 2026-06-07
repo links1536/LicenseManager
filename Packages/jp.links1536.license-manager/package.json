@@ -1,0 +1,9 @@
+{
+  "name": "jp.links1536.license-manager",
+  "author": {
+    "name": "links1536"
+  },
+  "version": "1.0.0",
+  "unity": "6000.4",
+  "displayName": "License Manager"
+}
