@@ -107,6 +107,4 @@ InitTestScene*.unity*
 
 /Assets/Generated/
 /Assets/Generated.meta
-Assets/AssetBundle/
-_Temp/
-Packages/jp.links1536.license-manager/
+/Assets/AssetBundle/
