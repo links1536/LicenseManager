@@ -319,7 +319,6 @@ namespace Links.Licenses
 
 			var hasLicenseContent =
 				entry.LicenseFile != null ||
-				entry.ThirdPartyNoticesFile != null ||
 				!string.IsNullOrWhiteSpace(entry.LicenseText);
 			if (!hasLicenseContent)
 				return false;

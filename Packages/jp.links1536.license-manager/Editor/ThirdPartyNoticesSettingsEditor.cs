@@ -170,7 +170,7 @@ namespace Links.Licenses
 				.Where(x =>
 					x != null &&
 					!string.IsNullOrWhiteSpace(x.Name) &&
-					(x.LicenseFile != null || x.ThirdPartyNoticesFile != null)
+					(x.LicenseFile != null || !string.IsNullOrWhiteSpace(x.LicenseText))
 				)
 				.ToDictionary(x => x.Name, StringComparer.OrdinalIgnoreCase);
 
@@ -224,7 +224,7 @@ namespace Links.Licenses
 				return false;
 			}
 
-			if (overrideAssets.HasAny)
+			if (overrideAssets.LicenseFile != null)
 			{
 				collectedEntries.Add(new ThirdPartyNoticesSettings.OSSEntry
 				{
@@ -253,7 +253,7 @@ namespace Links.Licenses
 			if (assets.ThirdPartyNoticesFile == null && existingCollectedEntry?.ThirdPartyNoticesFile != null)
 				assets = assets.WithThirdPartyNoticesFile(existingCollectedEntry.ThirdPartyNoticesFile);
 
-			if (assets.HasAny)
+			if (assets.LicenseFile != null)
 			{
 				collectedEntries.Add(new ThirdPartyNoticesSettings.OSSEntry
 				{
@@ -288,7 +288,7 @@ namespace Links.Licenses
 				return true;
 			}
 
-			missingReason = "パッケージ直下または GitHub リポジトリ直下に対応する LICENSE / THIRD PARTY NOTICES が見つかりません";
+			missingReason = "パッケージ直下または GitHub リポジトリ直下に対応する LICENSE が見つかりません";
 			return false;
 		}
 
@@ -302,7 +302,7 @@ namespace Links.Licenses
 		{
 			missingReason = null;
 			var explicitAssets = FindLicenseAssets(package.PackageFullPath, package.PackageAssetPath);
-			if (explicitAssets.HasAny)
+			if (explicitAssets.LicenseFile != null)
 			{
 				collectedEntries.Add(new ThirdPartyNoticesSettings.OSSEntry
 				{
@@ -355,31 +355,31 @@ namespace Links.Licenses
 				if (string.IsNullOrWhiteSpace(entry.Name))
 					yield return "埋め込みパッケージの名前が空です";
 
-				if (entry.LicenseFile == null && entry.ThirdPartyNoticesFile == null && string.IsNullOrWhiteSpace(entry.LicenseText))
-					yield return $"埋め込みパッケージ '{entry.Name}' にライセンスファイルまたはライセンステキストが設定されていません";
+				if (entry.LicenseFile == null && string.IsNullOrWhiteSpace(entry.LicenseText))
+					yield return $"埋め込みパッケージ '{entry.Name}' に LICENSE またはライセンステキストが設定されていません";
 			}
 
 			foreach (var entry in settings.UnityPackageOSSList.Where(x => x != null))
 			{
-				if (entry.LicenseFile == null && entry.ThirdPartyNoticesFile == null && string.IsNullOrWhiteSpace(entry.LicenseText))
-					yield return $"Unity Package '{entry.Name}' のライセンス情報がありません";
+				if (entry.LicenseFile == null && string.IsNullOrWhiteSpace(entry.LicenseText))
+					yield return $"Unity Package '{entry.Name}' の LICENSE がありません";
 			}
 
 			foreach (var entry in settings.MissingUnityPackageOSSList.Where(x => x != null))
 			{
-				if (entry.IsRepositoryMaterialized && entry.LicenseFile == null && entry.ThirdPartyNoticesFile == null)
+				if (entry.IsRepositoryMaterialized && entry.LicenseFile == null)
 					yield return $"Unity Package '{entry.Name}': {entry.Reason}";
 			}
 
 			foreach (var entry in settings.NuGetOSSList.Where(x => x != null))
 			{
-				if (entry.LicenseFile == null && entry.ThirdPartyNoticesFile == null && string.IsNullOrWhiteSpace(entry.LicenseText))
-					yield return $"NuGet パッケージ '{entry.Name}' のライセンス情報がありません";
+				if (entry.LicenseFile == null && string.IsNullOrWhiteSpace(entry.LicenseText))
+					yield return $"NuGet パッケージ '{entry.Name}' の LICENSE がありません";
 			}
 
 			foreach (var entry in settings.MissingNuGetOSSList.Where(x => x != null))
 			{
-				if (entry.IsRepositoryMaterialized && entry.LicenseFile == null && entry.ThirdPartyNoticesFile == null)
+				if (entry.IsRepositoryMaterialized && entry.LicenseFile == null)
 					yield return $"NuGet パッケージ '{entry.Name}': {entry.Reason}";
 			}
 		}
