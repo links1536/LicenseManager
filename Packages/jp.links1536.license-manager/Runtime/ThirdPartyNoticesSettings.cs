@@ -16,7 +16,10 @@ namespace Links.Licenses
 		{
 			public string Name;
 
+			[FormerlySerializedAs("LicenseFile")]
 			public TextAsset LicenseFile;
+
+			public TextAsset ThirdPartyNoticesFile;
 
 			[TextArea(3, 20)]
 			public string LicenseText;
@@ -41,7 +44,18 @@ namespace Links.Licenses
 					builder.AppendLine(LicenseFile.text);
 					builder.AppendLine();
 				}
-				else if (!string.IsNullOrWhiteSpace(LicenseText))
+
+				if (ThirdPartyNoticesFile != null && !string.IsNullOrWhiteSpace(ThirdPartyNoticesFile.text))
+				{
+					builder.AppendLine(ThirdPartyNoticesFile.text);
+					builder.AppendLine();
+				}
+
+				if (
+					LicenseFile == null &&
+					ThirdPartyNoticesFile == null &&
+					!string.IsNullOrWhiteSpace(LicenseText)
+				)
 				{
 					builder.AppendLine(LicenseText);
 					builder.AppendLine();
@@ -61,7 +75,10 @@ namespace Links.Licenses
 
 			public string Reason;
 
+			[FormerlySerializedAs("LicenseFile")]
 			public TextAsset LicenseFile;
+
+			public TextAsset ThirdPartyNoticesFile;
 
 			public bool IsRepositoryMaterialized;
 
@@ -245,8 +262,12 @@ namespace Links.Licenses
 				builder.Append("- ");
 				builder.Append(entry.Name);
 				builder.Append(" : ");
-				if (entry.LicenseFile != null)
+				if (entry.LicenseFile != null && entry.ThirdPartyNoticesFile != null)
+					builder.AppendLine($"{entry.LicenseFile.name}, {entry.ThirdPartyNoticesFile.name}");
+				else if (entry.LicenseFile != null)
 					builder.AppendLine(entry.LicenseFile.name);
+				else if (entry.ThirdPartyNoticesFile != null)
+					builder.AppendLine(entry.ThirdPartyNoticesFile.name);
 				else if (!string.IsNullOrWhiteSpace(entry.LicenseText))
 					builder.AppendLine("パッケージ情報");
 				else
@@ -296,7 +317,10 @@ namespace Links.Licenses
 			if (entry == null)
 				return false;
 
-			var hasLicenseContent = entry.LicenseFile != null || !string.IsNullOrWhiteSpace(entry.LicenseText);
+			var hasLicenseContent =
+				entry.LicenseFile != null ||
+				entry.ThirdPartyNoticesFile != null ||
+				!string.IsNullOrWhiteSpace(entry.LicenseText);
 			if (!hasLicenseContent)
 				return false;
 

@@ -170,6 +170,7 @@ namespace Links.Licenses
 		{
 			var nameProperty = element.FindPropertyRelative("Name");
 			var licenseFileProperty = element.FindPropertyRelative("LicenseFile");
+			var thirdPartyNoticesFileProperty = element.FindPropertyRelative("ThirdPartyNoticesFile");
 			var licenseTextProperty = element.FindPropertyRelative("LicenseText");
 			var fullLabel = GetCollectedEntryLabel(element, index);
 
@@ -182,7 +183,8 @@ namespace Links.Licenses
 				using (new EditorGUI.DisabledScope(true))
 				{
 					EditorGUILayout.PropertyField(nameProperty);
-					EditorGUILayout.PropertyField(licenseFileProperty);
+					EditorGUILayout.PropertyField(licenseFileProperty, new GUIContent("LICENSE"));
+					EditorGUILayout.PropertyField(thirdPartyNoticesFileProperty, new GUIContent("THIRD PARTY NOTICES"));
 				}
 
 				var licenseText = licenseTextProperty?.stringValue;
@@ -235,6 +237,7 @@ namespace Links.Licenses
 					var packagePathProperty = element.FindPropertyRelative("PackagePath");
 					var reasonProperty = element.FindPropertyRelative("Reason");
 					var licenseFileProperty = element.FindPropertyRelative("LicenseFile");
+					var thirdPartyNoticesFileProperty = element.FindPropertyRelative("ThirdPartyNoticesFile");
 					var label = LicenseManagerEditorUtils.PropertyIndex(nameProperty?.stringValue, i);
 
 					element.isExpanded = EditorGUILayout.Foldout(element.isExpanded, label, true);
@@ -251,7 +254,8 @@ namespace Links.Licenses
 						}
 
 						// ライセンスの上書き用の項目のみ編集可能
-						EditorGUILayout.PropertyField(licenseFileProperty);
+						EditorGUILayout.PropertyField(licenseFileProperty, new GUIContent("LICENSE"));
+						EditorGUILayout.PropertyField(thirdPartyNoticesFileProperty, new GUIContent("THIRD PARTY NOTICES"));
 					}
 				}
 			}

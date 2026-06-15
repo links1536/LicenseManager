@@ -25,6 +25,9 @@ namespace Links.Licenses
 		{
 			"LICENSE",
 			"COPYING",
+		};
+		static readonly string[] ThirdPartyNoticesFilePrefixes =
+		{
 			"NOTICE",
 			"THIRD-PARTY-NOTICES",
 			"THIRDPARTYNOTICES",
@@ -160,15 +163,22 @@ namespace Links.Licenses
 				.Where(x => x != null && !string.IsNullOrWhiteSpace(x.Name))
 				.ToDictionary(x => x.Name, StringComparer.OrdinalIgnoreCase);
 			var existingCollectedEntries = existingAssignedEntries
-				.Where(x => x != null && !string.IsNullOrWhiteSpace(x.Name) && x.LicenseFile != null)
+				.Where(x =>
+					x != null &&
+					!string.IsNullOrWhiteSpace(x.Name) &&
+					(x.LicenseFile != null || x.ThirdPartyNoticesFile != null)
+				)
 				.ToDictionary(x => x.Name, StringComparer.OrdinalIgnoreCase);
 
 			foreach (var package in packages)
 			{
 				existingMissingEntriesMap.TryGetValue(package.DisplayName, out var existingMissingEntry);
 				existingCollectedEntries.TryGetValue(package.DisplayName, out var existingCollectedEntry);
-				var licenseAsset = existingMissingEntry?.LicenseFile;
-				if (!TryCollectPackageEntries(package, licenseAsset, existingCollectedEntry, collectedEntries, out var missingReason))
+				var overrideFiles = new LicenseAssetPair(
+					existingMissingEntry?.LicenseFile,
+					existingMissingEntry?.ThirdPartyNoticesFile
+				);
+				if (!TryCollectPackageEntries(package, overrideFiles, existingCollectedEntry, collectedEntries, out var missingReason))
 				{
 					if (package.IsUnityOwned && string.IsNullOrWhiteSpace(missingReason))
 						continue;
@@ -178,7 +188,8 @@ namespace Links.Licenses
 						Name = package.DisplayName,
 						PackagePath = package.PackageAssetPath,
 						Reason = missingReason,
-						LicenseFile = licenseAsset,
+						LicenseFile = overrideFiles.LicenseFile,
+						ThirdPartyNoticesFile = overrideFiles.ThirdPartyNoticesFile,
 						IsRepositoryMaterialized = package.IsRepositoryMaterialized,
 						HasMetadataLicense = !string.IsNullOrWhiteSpace(package.MetadataLicenseText),
 					});
@@ -196,7 +207,7 @@ namespace Links.Licenses
 
 		static bool TryCollectPackageEntries(
 			PackageEntry package,
-			TextAsset overrideLicenseAsset,
+			LicenseAssetPair overrideAssets,
 			ThirdPartyNoticesSettings.OSSEntry existingCollectedEntry,
 			List<ThirdPartyNoticesSettings.OSSEntry> collectedEntries,
 			out string missingReason)
@@ -209,12 +220,13 @@ namespace Links.Licenses
 				return false;
 			}
 
-			if (overrideLicenseAsset != null)
+			if (overrideAssets.HasAny)
 			{
 				collectedEntries.Add(new ThirdPartyNoticesSettings.OSSEntry
 				{
 					Name = package.DisplayName,
-					LicenseFile = overrideLicenseAsset,
+					LicenseFile = overrideAssets.LicenseFile,
+					ThirdPartyNoticesFile = overrideAssets.ThirdPartyNoticesFile,
 					LicenseText = null,
 					SourcePath = package.PackageAssetPath,
 					IsRepositoryMaterialized = package.IsRepositoryMaterialized,
@@ -226,19 +238,24 @@ namespace Links.Licenses
 			if (package.IsUnityOwned)
 				return TryCollectUnityOwnedPackageEntries(package, collectedEntries, out missingReason);
 
-			var licenseAsset = FindLicenseAsset(package.PackageFullPath, package.PackageAssetPath);
-			if (licenseAsset == null)
-				licenseAsset = FindOrCreateGitHubRootLicenseAsset(package);
+			var assets = FindLicenseAssets(package.PackageFullPath, package.PackageAssetPath);
+			if (assets.LicenseFile == null)
+				assets = assets.WithLicenseFile(FindOrCreateGitHubRootAsset(package, LicenseDocumentType.License));
+			if (assets.ThirdPartyNoticesFile == null)
+				assets = assets.WithThirdPartyNoticesFile(FindOrCreateGitHubRootAsset(package, LicenseDocumentType.ThirdPartyNotices));
 
-			if (licenseAsset == null && existingCollectedEntry?.LicenseFile != null && string.IsNullOrWhiteSpace(package.MetadataLicenseText))
-				licenseAsset = existingCollectedEntry.LicenseFile;
+			if (assets.LicenseFile == null && existingCollectedEntry?.LicenseFile != null)
+				assets = assets.WithLicenseFile(existingCollectedEntry.LicenseFile);
+			if (assets.ThirdPartyNoticesFile == null && existingCollectedEntry?.ThirdPartyNoticesFile != null)
+				assets = assets.WithThirdPartyNoticesFile(existingCollectedEntry.ThirdPartyNoticesFile);
 
-			if (licenseAsset != null)
+			if (assets.HasAny)
 			{
 				collectedEntries.Add(new ThirdPartyNoticesSettings.OSSEntry
 				{
 					Name = package.DisplayName,
-					LicenseFile = licenseAsset,
+					LicenseFile = assets.LicenseFile,
+					ThirdPartyNoticesFile = assets.ThirdPartyNoticesFile,
 					LicenseText = null,
 					SourcePath = package.PackageAssetPath,
 					IsRepositoryMaterialized = package.IsRepositoryMaterialized,
@@ -267,7 +284,7 @@ namespace Links.Licenses
 				return true;
 			}
 
-			missingReason = "パッケージ直下または GitHub リポジトリ直下に対応するライセンスファイルが見つかりません";
+			missingReason = "パッケージ直下または GitHub リポジトリ直下に対応する LICENSE / THIRD PARTY NOTICES が見つかりません";
 			return false;
 		}
 
@@ -280,21 +297,19 @@ namespace Links.Licenses
 			out string missingReason)
 		{
 			missingReason = null;
-			var explicitAssets = FindAllLicenseAssets(package.PackageFullPath, package.PackageAssetPath).ToArray();
-			if (explicitAssets.Length > 0)
+			var explicitAssets = FindLicenseAssets(package.PackageFullPath, package.PackageAssetPath);
+			if (explicitAssets.HasAny)
 			{
-				foreach (var asset in explicitAssets)
+				collectedEntries.Add(new ThirdPartyNoticesSettings.OSSEntry
 				{
-					collectedEntries.Add(new ThirdPartyNoticesSettings.OSSEntry
-					{
-						Name = $"{package.DisplayName} / {asset.name}",
-						LicenseFile = asset,
-						LicenseText = null,
-						SourcePath = package.PackageAssetPath,
-						IsRepositoryMaterialized = package.IsRepositoryMaterialized,
-						IsMetadataOnly = false,
-					});
-				}
+					Name = package.DisplayName,
+					LicenseFile = explicitAssets.LicenseFile,
+					ThirdPartyNoticesFile = explicitAssets.ThirdPartyNoticesFile,
+					LicenseText = null,
+					SourcePath = package.PackageAssetPath,
+					IsRepositoryMaterialized = package.IsRepositoryMaterialized,
+					IsMetadataOnly = false,
+				});
 
 				return true;
 			}
@@ -309,8 +324,9 @@ namespace Links.Licenses
 
 				collectedEntries.Add(new ThirdPartyNoticesSettings.OSSEntry
 				{
-					Name = $"{package.DisplayName} / パッケージ メタデータ",
+					Name = package.DisplayName,
 					LicenseFile = null,
+					ThirdPartyNoticesFile = null,
 					LicenseText = package.MetadataLicenseText,
 					SourcePath = package.PackageAssetPath,
 					IsRepositoryMaterialized = false,
@@ -335,31 +351,31 @@ namespace Links.Licenses
 				if (string.IsNullOrWhiteSpace(entry.Name))
 					yield return "埋め込みパッケージの名前が空です";
 
-				if (entry.LicenseFile == null && string.IsNullOrWhiteSpace(entry.LicenseText))
+				if (entry.LicenseFile == null && entry.ThirdPartyNoticesFile == null && string.IsNullOrWhiteSpace(entry.LicenseText))
 					yield return $"埋め込みパッケージ '{entry.Name}' にライセンスファイルまたはライセンステキストが設定されていません";
 			}
 
 			foreach (var entry in settings.UnityPackageOSSList.Where(x => x != null))
 			{
-				if (entry.LicenseFile == null && string.IsNullOrWhiteSpace(entry.LicenseText))
+				if (entry.LicenseFile == null && entry.ThirdPartyNoticesFile == null && string.IsNullOrWhiteSpace(entry.LicenseText))
 					yield return $"Unity Package '{entry.Name}' のライセンス情報がありません";
 			}
 
 			foreach (var entry in settings.MissingUnityPackageOSSList.Where(x => x != null))
 			{
-				if (entry.IsRepositoryMaterialized && entry.LicenseFile == null)
+				if (entry.IsRepositoryMaterialized && entry.LicenseFile == null && entry.ThirdPartyNoticesFile == null)
 					yield return $"Unity Package '{entry.Name}': {entry.Reason}";
 			}
 
 			foreach (var entry in settings.NuGetOSSList.Where(x => x != null))
 			{
-				if (entry.LicenseFile == null && string.IsNullOrWhiteSpace(entry.LicenseText))
+				if (entry.LicenseFile == null && entry.ThirdPartyNoticesFile == null && string.IsNullOrWhiteSpace(entry.LicenseText))
 					yield return $"NuGet パッケージ '{entry.Name}' のライセンス情報がありません";
 			}
 
 			foreach (var entry in settings.MissingNuGetOSSList.Where(x => x != null))
 			{
-				if (entry.IsRepositoryMaterialized && entry.LicenseFile == null)
+				if (entry.IsRepositoryMaterialized && entry.LicenseFile == null && entry.ThirdPartyNoticesFile == null)
 					yield return $"NuGet パッケージ '{entry.Name}': {entry.Reason}";
 			}
 		}
@@ -471,12 +487,12 @@ namespace Links.Licenses
 			return result;
 		}
 
-		static TextAsset FindOrCreateGitHubRootLicenseAsset(PackageEntry package)
+		static TextAsset FindOrCreateGitHubRootAsset(PackageEntry package, LicenseDocumentType documentType)
 		{
 			if (!TryCreateGitHubRepositoryInfo(package.GitPackage, out var repositoryInfo))
 				return null;
 
-			foreach (var candidateFileName in EnumerateLicenseCandidateFileNames())
+			foreach (var candidateFileName in EnumerateLicenseCandidateFileNames(documentType))
 			{
 				var rawUrl = repositoryInfo.GetRawUrl(candidateFileName);
 				if (!TryDownloadText(rawUrl, out var licenseText))
@@ -520,9 +536,12 @@ namespace Links.Licenses
 			return true;
 		}
 
-		static IEnumerable<string> EnumerateLicenseCandidateFileNames()
+		static IEnumerable<string> EnumerateLicenseCandidateFileNames(LicenseDocumentType documentType)
 		{
-			foreach (var prefix in LicenseFilePrefixes)
+			var prefixes = documentType == LicenseDocumentType.ThirdPartyNotices
+				? ThirdPartyNoticesFilePrefixes
+				: LicenseFilePrefixes;
+			foreach (var prefix in prefixes)
 			{
 				foreach (var extension in LicenseFileExtensions)
 					yield return prefix + extension;
@@ -554,7 +573,7 @@ namespace Links.Licenses
 		static string GetGeneratedUnityPackageLicenseAssetPath(PackageEntry package, string candidateFileName)
 		{
 			EnsureAssetFolderExists(GeneratedUnityPackageLicenseRoot);
-			var fileName = $"{SanitizeFileName(package.PackageId)}-{SanitizeFileName(package.Version)}.txt";
+			var fileName = $"{SanitizeFileName(package.PackageId)}-{SanitizeFileName(package.Version)}-{SanitizeFileName(candidateFileName)}.txt";
 			return $"{GeneratedUnityPackageLicenseRoot}/{fileName}";
 		}
 
@@ -680,43 +699,80 @@ namespace Links.Licenses
 			}
 		}
 
-		static IEnumerable<TextAsset> FindAllLicenseAssets(string packageFullPath, string packageAssetPath)
+		static LicenseAssetPair FindLicenseAssets(string packageFullPath, string packageAssetPath)
 		{
+			TextAsset detectedLicenseFile = null;
+			TextAsset thirdPartyNoticesFile = null;
+
 			if (string.IsNullOrWhiteSpace(packageFullPath) || !Directory.Exists(packageFullPath))
-				yield break;
+				return new LicenseAssetPair(detectedLicenseFile, thirdPartyNoticesFile);
 
 			var licenseFiles = Directory
 				.GetFiles(packageFullPath, "*", SearchOption.TopDirectoryOnly)
 				.Select(path => new FileInfo(path))
-				.Where(file => file.Exists)
+				.Where(file => file.Exists && GetLicenseKind(file.Name) != LicenseDocumentType.Unknown)
+				.ToArray()
 				.OrderBy(file => GetLicensePriority(file.Name))
 				.ThenBy(file => file.Name, StringComparer.OrdinalIgnoreCase);
 
-			foreach (var licenseFile in licenseFiles)
+			foreach (var file in licenseFiles)
 			{
-				if (GetLicensePriority(licenseFile.Name) >= int.MaxValue)
+				var assetPath = $"{packageAssetPath}/{file.Name}";
+				var asset = AssetDatabase.LoadAssetAtPath<TextAsset>(NormalizeAssetPath(assetPath));
+				if (asset == null)
 					continue;
 
-				var assetPath = $"{packageAssetPath}/{licenseFile.Name}";
-				var asset = AssetDatabase.LoadAssetAtPath<TextAsset>(NormalizeAssetPath(assetPath));
-				if (asset != null)
-					yield return asset;
+				switch (GetLicenseKind(file.Name))
+				{
+					case LicenseDocumentType.License:
+						detectedLicenseFile ??= asset;
+						break;
+					case LicenseDocumentType.ThirdPartyNotices:
+						thirdPartyNoticesFile ??= asset;
+						break;
+				}
 			}
-		}
 
-		static TextAsset FindLicenseAsset(string packageFullPath, string packageAssetPath)
-			=> FindAllLicenseAssets(packageFullPath, packageAssetPath).FirstOrDefault();
+			return new LicenseAssetPair(detectedLicenseFile, thirdPartyNoticesFile);
+		}
 
 		static int GetLicensePriority(string fileName)
 		{
-			var normalizedFileName = NormalizeLicenseFileName(Path.GetFileNameWithoutExtension(fileName) ?? fileName);
-			for (var i = 0; i < LicenseFilePrefixes.Length; i++)
+			var kind = GetLicenseKind(fileName);
+			var prefixes = kind switch
 			{
-				if (normalizedFileName.StartsWith(NormalizeLicenseFileName(LicenseFilePrefixes[i]), StringComparison.OrdinalIgnoreCase))
+				LicenseDocumentType.License => LicenseFilePrefixes,
+				LicenseDocumentType.ThirdPartyNotices => ThirdPartyNoticesFilePrefixes,
+				_ => null,
+			};
+			if (prefixes == null)
+				return int.MaxValue;
+
+			var normalizedFileName = NormalizeLicenseFileName(Path.GetFileNameWithoutExtension(fileName) ?? fileName);
+			for (var i = 0; i < prefixes.Length; i++)
+			{
+				if (normalizedFileName.StartsWith(NormalizeLicenseFileName(prefixes[i]), StringComparison.OrdinalIgnoreCase))
 					return i;
 			}
-
 			return int.MaxValue;
+		}
+
+		static LicenseDocumentType GetLicenseKind(string fileName)
+		{
+			var normalizedFileName = NormalizeLicenseFileName(Path.GetFileNameWithoutExtension(fileName) ?? fileName);
+			foreach (var prefix in LicenseFilePrefixes)
+			{
+				if (normalizedFileName.StartsWith(NormalizeLicenseFileName(prefix), StringComparison.OrdinalIgnoreCase))
+					return LicenseDocumentType.License;
+			}
+
+			foreach (var prefix in ThirdPartyNoticesFilePrefixes)
+			{
+				if (normalizedFileName.StartsWith(NormalizeLicenseFileName(prefix), StringComparison.OrdinalIgnoreCase))
+					return LicenseDocumentType.ThirdPartyNotices;
+			}
+
+			return LicenseDocumentType.Unknown;
 		}
 
 		static string NormalizeLicenseFileName(string fileName)
@@ -790,6 +846,32 @@ namespace Links.Licenses
 			public GitPackageLockEntry GitPackage { get; }
 			public bool IsUnityOwned { get; }
 			public bool IsRepositoryMaterialized { get; }
+		}
+
+		enum LicenseDocumentType
+		{
+			Unknown,
+			License,
+			ThirdPartyNotices,
+		}
+
+		readonly struct LicenseAssetPair
+		{
+			public LicenseAssetPair(TextAsset licenseFile, TextAsset thirdPartyNoticesFile)
+			{
+				LicenseFile = licenseFile;
+				ThirdPartyNoticesFile = thirdPartyNoticesFile;
+			}
+
+			public TextAsset LicenseFile { get; }
+			public TextAsset ThirdPartyNoticesFile { get; }
+			public bool HasAny => LicenseFile != null || ThirdPartyNoticesFile != null;
+
+			public LicenseAssetPair WithLicenseFile(TextAsset licenseFile)
+				=> new LicenseAssetPair(licenseFile, ThirdPartyNoticesFile);
+
+			public LicenseAssetPair WithThirdPartyNoticesFile(TextAsset thirdPartyNoticesFile)
+				=> new LicenseAssetPair(LicenseFile, thirdPartyNoticesFile);
 		}
 
 		sealed class GitPackageLockEntry
