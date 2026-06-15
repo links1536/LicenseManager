@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -39,6 +40,7 @@ namespace Links.Licenses
 			".md",
 			".markdown",
 		};
+		static readonly Dictionary<string, bool> RepositoryMaterializationCache = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
 
 		SerializedProperty m_ManualEntriesProperty;
 
@@ -107,12 +109,14 @@ namespace Links.Licenses
 
 		public static void RefreshAllEntries(ThirdPartyNoticesSettings settings)
 		{
+			RepositoryMaterializationCache.Clear();
 			RefreshUnityPackageEntries(settings);
 			RefreshNuGetEntries(settings);
 		}
 
 		public static void RefreshSourceEntries(ThirdPartyNoticesSettings settings, SourceType sourceType)
 		{
+			RepositoryMaterializationCache.Clear();
 			switch (sourceType)
 			{
 				case SourceType.UnityPackages:
@@ -806,10 +810,55 @@ namespace Links.Licenses
 				return false;
 
 			var relativePath = NormalizeAssetPath(Path.GetRelativePath(projectRoot, normalizedPath));
-			return relativePath.StartsWith("Packages/", StringComparison.OrdinalIgnoreCase)
+			var isRepositoryFolderPath = relativePath.StartsWith("Packages/", StringComparison.OrdinalIgnoreCase)
 				|| relativePath.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase)
 				|| string.Equals(relativePath, "Packages", StringComparison.OrdinalIgnoreCase)
 				|| string.Equals(relativePath, "Assets", StringComparison.OrdinalIgnoreCase);
+			if (!isRepositoryFolderPath)
+				return false;
+
+			if (RepositoryMaterializationCache.TryGetValue(relativePath, out var isMaterialized))
+				return isMaterialized;
+
+			isMaterialized = !IsGitIgnoredPath(projectRoot, relativePath);
+			RepositoryMaterializationCache[relativePath] = isMaterialized;
+			return isMaterialized;
+		}
+
+		static bool IsGitIgnoredPath(string projectRoot, string relativePath)
+		{
+			try
+			{
+				var startInfo = new ProcessStartInfo
+				{
+					FileName = "git",
+					Arguments = $"check-ignore -q -- \"{relativePath.Replace("\"", "\\\"")}\"",
+					WorkingDirectory = projectRoot,
+					UseShellExecute = false,
+					CreateNoWindow = true,
+					RedirectStandardOutput = true,
+					RedirectStandardError = true,
+				};
+
+				using (var process = Process.Start(startInfo))
+				{
+					if (process == null)
+						return false;
+
+					process.WaitForExit(3000);
+					if (!process.HasExited)
+					{
+						process.Kill();
+						return false;
+					}
+
+					return process.ExitCode == 0;
+				}
+			}
+			catch
+			{
+				return false;
+			}
 		}
 
 		readonly struct PackageEntry
