@@ -167,11 +167,7 @@ namespace Links.Licenses
 				.Where(x => x != null && !string.IsNullOrWhiteSpace(x.Name))
 				.ToDictionary(x => x.Name, StringComparer.OrdinalIgnoreCase);
 			var existingCollectedEntries = existingAssignedEntries
-				.Where(x =>
-					x != null &&
-					!string.IsNullOrWhiteSpace(x.Name) &&
-					(x.LicenseFile != null || !string.IsNullOrWhiteSpace(x.LicenseText))
-				)
+				.Where(x => x != null && !string.IsNullOrWhiteSpace(x.Name) && x.HasLicenseContent())
 				.ToDictionary(x => x.Name, StringComparer.OrdinalIgnoreCase);
 
 			foreach (var package in packages)
@@ -644,9 +640,7 @@ namespace Links.Licenses
 				if (packageJson == null)
 					return null;
 
-				var hasLicenseMetadata =
-					!string.IsNullOrWhiteSpace(packageJson.license) ||
-					!string.IsNullOrWhiteSpace(packageJson.licensesUrl);
+				var hasLicenseMetadata = !string.IsNullOrWhiteSpace(packageJson.license) || !string.IsNullOrWhiteSpace(packageJson.licensesUrl);
 				if (!hasLicenseMetadata)
 					return null;
 

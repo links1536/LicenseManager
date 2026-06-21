@@ -30,6 +30,11 @@ namespace Links.Licenses
 
 			public bool IsMetadataOnly;
 
+			public bool HasLicenseContent()
+				=> LicenseFile != null
+				|| ThirdPartyNoticesFile != null
+				|| !string.IsNullOrWhiteSpace(LicenseText);
+
 			public string GetDisplayText()
 			{
 				var builder = new StringBuilder();
@@ -51,11 +56,7 @@ namespace Links.Licenses
 					builder.AppendLine();
 				}
 
-				if (
-					LicenseFile == null &&
-					ThirdPartyNoticesFile == null &&
-					!string.IsNullOrWhiteSpace(LicenseText)
-				)
+				if (LicenseFile == null && ThirdPartyNoticesFile == null && !string.IsNullOrWhiteSpace(LicenseText) )
 				{
 					builder.AppendLine(LicenseText);
 					builder.AppendLine();
@@ -317,9 +318,7 @@ namespace Links.Licenses
 			if (entry == null)
 				return false;
 
-			var hasLicenseContent =
-				entry.LicenseFile != null ||
-				!string.IsNullOrWhiteSpace(entry.LicenseText);
+			var hasLicenseContent = entry.HasLicenseContent();
 			if (!hasLicenseContent)
 				return false;
 
