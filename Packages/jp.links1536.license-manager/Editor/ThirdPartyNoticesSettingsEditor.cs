@@ -253,7 +253,7 @@ namespace Links.Licenses
 			if (assets.ThirdPartyNoticesFile == null && existingCollectedEntry?.ThirdPartyNoticesFile != null)
 				assets = assets.WithThirdPartyNoticesFile(existingCollectedEntry.ThirdPartyNoticesFile);
 
-			if (assets.LicenseFile != null)
+			if (assets.LicenseFile != null || assets.ThirdPartyNoticesFile != null)
 			{
 				collectedEntries.Add(new ThirdPartyNoticesSettings.OSSEntry
 				{
