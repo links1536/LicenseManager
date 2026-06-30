@@ -1,9 +1,9 @@
 ﻿using UnityEditor;
 using UnityEngine.UIElements;
 
-namespace Links.Licenses
+namespace Links.Licenses.Settings
 {
-	sealed class PackageSettingsProvider : SettingsProvider
+	class PackageSettingsProvider : SettingsProvider
 	{
 		readonly string m_Title;
 		readonly string m_Description;
@@ -21,8 +21,7 @@ namespace Links.Licenses
 
 		public override void OnActivate(string searchContext, VisualElement rootElement)
 		{
-			var instance = ThirdPartyNoticesSettingsProvider.GetOrCreateSettings();
-			ThirdPartyNoticesSettingsEditor.RefreshSourceEntries(instance, m_SourceType);
+			var instance = LicenseSettings.instance;
 			Editor.CreateCachedEditor(instance, typeof(PackageSettingsEditor), ref m_Editor);
 			if (m_Editor is PackageSettingsEditor sourceEditor)
 				sourceEditor.Configure(m_Title, m_Description, m_SourceType);
@@ -30,7 +29,7 @@ namespace Links.Licenses
 
 		public override void OnGUI(string searchContext)
 		{
-			var instance = ThirdPartyNoticesSettingsProvider.GetOrCreateSettings();
+			var instance = LicenseSettings.instance;
 			if (m_Editor == null || m_Editor.target != instance)
 				Editor.CreateCachedEditor(instance, typeof(PackageSettingsEditor), ref m_Editor);
 

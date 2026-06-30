@@ -2,6 +2,7 @@
 {
 	public enum SourceType
 	{
+		UnmanagedAssets,
 		UnityPackages,
 		NuGet,
 	}
