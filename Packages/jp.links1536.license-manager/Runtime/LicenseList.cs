@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -111,7 +110,7 @@ namespace Links.Licenses
 			m_ActiveList.Add(lineObject);
 		}
 
-		FrozenDictionary<string, LicenseManifest.SpdxTemplateEntry>? GetSpdxTemplates()
+		Dictionary<string, LicenseManifest.SpdxTemplateEntry>? GetSpdxTemplates()
 		{
 			if (!LicenseManifest.TryGetInstance(out var instance))
 				return default;
@@ -119,7 +118,7 @@ namespace Links.Licenses
 			var dict = new Dictionary<string, LicenseManifest.SpdxTemplateEntry>(instance.SpdxTemplateList.Count);
 			foreach(var entry in instance.SpdxTemplateList)
 				dict[entry.SpdxIdentifier] = entry;
-			return dict.ToFrozenDictionary();
+			return dict;
 		}
 
 		List<LicenseManifest.SpdxLicenseEntry>? GetSpdxLicenses()
